@@ -14,7 +14,9 @@ import com.claimsense.auth.service.AuthService;
 import com.claimsense.common.enums.RoleName;
 import com.claimsense.common.enums.UserStatus;
 import com.claimsense.common.exception.EmailAlreadyExistsException;
+import com.claimsense.common.exception.InvalidCredentialsException;
 import com.claimsense.common.exception.RoleNotFoundException;
+import com.claimsense.common.exception.UserNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -39,7 +41,7 @@ public class AuthServiceImpl implements AuthService {
             throw new EmailAlreadyExistsException("Email already exists");
         }
 
-        Role customerRole  = roleRepository.findByName(RoleName.CUSTOMER)
+        Role customerRole = roleRepository.findByName(RoleName.CUSTOMER)
                 .orElseThrow(() -> new RoleNotFoundException("Default role not found"));
 
         String encodedPassword = passwordEncoder.encode(request.getPassword());
@@ -64,8 +66,21 @@ public class AuthServiceImpl implements AuthService {
                 .build();
     }
 
-    @Override
     public AuthResponse login(LoginRequest request) {
-        return null;
+
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() ->
+                        new UserNotFoundException("User not found"));
+
+        if (!passwordEncoder.matches(
+                request.getPassword(),
+                user.getPassword())) {
+
+            throw new InvalidCredentialsException(
+                    "Invalid email or password");
+        }
+        return AuthResponse.builder()
+                .message("Login successful")
+                .build();
     }
 }
