@@ -3,18 +3,25 @@ spring:
     name: claimsense-backend
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/claimsense
-    username: postgres
-    password: admin
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
       ddl-auto: validate
     show-sql: true
+    open-in-view: false
     properties:
       hibernate:
         format_sql: true
+        jdbc:
+          time_zone: UTC
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
 
 server:
-  port: 8080
-
+  port: ${PORT:8080}
